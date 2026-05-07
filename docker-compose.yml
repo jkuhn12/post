@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  user-service:
+    build: ./user-service
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/userdb?sslmode=disable
+      JWT_SECRET: supersecretkey
+      PORT: 8081
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+
+  post-service:
+    build: ./post-service
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/postdb?sslmode=disable
+      PORT: 8082
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+
+  api-gateway:
+    build: ./api-gateway
+    environment:
+      USER_SERVICE_URL: http://user-service:8081
+      POST_SERVICE_URL: http://post-service:8082
+      JWT_SECRET: supersecretkey
+      PORT: 8080
+    depends_on:
+      - user-service
+      - post-service
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api-gateway
+
+volumes:
+  postgres_data:
