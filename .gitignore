@@ -20,8 +20,8 @@ Thumbs.db
 vendor/
 
 # Node.js / Frontend
-# frontend/node_modules/
-# frontend/dist/
+frontend/node_modules/
+frontend/dist/
 frontend/.vite/
 frontend/.next/
 frontend/out/
@@ -42,7 +42,7 @@ frontend/.env
 frontend/.env.local
 frontend/.env.*.local
 
-# frontend/package-lock.json
+frontend/package-lock.json
 frontend/yarn.lock
 frontend/pnpm-lock.yaml
 
